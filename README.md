@@ -10,7 +10,8 @@ For each invocation, this code will:
 This can be run as part of an existing or a new web service (as long as it is capable of running PHP code) or as a standalone PHP program (possibly with some modifications) which outputs the PNG image binary data to stdout.
 
 An example of some generated weather map tiles from wind data overlayed over a base map in Leaflet is shown below (as seen in the sailing navigation simulator here: https://8bitbyte.ca/sailnavsim/).
-[Wind data example](./examples/wind-example.png)
+
+<img src="https://raw.githubusercontent.com/ls4096/map-wxtile-generator/master/examples/wind-example.png" />
 
 ## Dependencies
 
