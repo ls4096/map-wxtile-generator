@@ -1,5 +1,5 @@
 <?php
-# Copyright (C) 2021 ls4096 <ls4096@8bitbyte.ca>
+# Copyright (C) 2021-2023 ls4096 <ls4096@8bitbyte.ca>
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -192,22 +192,24 @@ function wxlib_get_dec_val($h)
 
 function wxlib_get_dec($h)
 {
-	if ($h == "0") { return 0; }
-	if ($h == "1") { return 1; }
-	if ($h == "2") { return 2; }
-	if ($h == "3") { return 3; }
-	if ($h == "4") { return 4; }
-	if ($h == "5") { return 5; }
-	if ($h == "6") { return 6; }
-	if ($h == "7") { return 7; }
-	if ($h == "8") { return 8; }
-	if ($h == "9") { return 9; }
-	if ($h == "a") { return 10; }
-	if ($h == "b") { return 11; }
-	if ($h == "c") { return 12; }
-	if ($h == "d") { return 13; }
-	if ($h == "e") { return 14; }
-	if ($h == "f") { return 15; }
+	$b = ord($h);
+	if (($b >= 0x30) && ($b <= 0x39))
+	{
+		// 0-9
+		return ($b - 0x30);
+	}
+	else if (($b >= 0x61) && ($b <= 0x66))
+	{
+		// a-f
+		return ($b - 0x61 + 10);
+	}
+	else if (($b >= 0x41) && ($b <= 0x46))
+	{
+		// A-F
+		return ($b - 0x41 + 10);
+	}
+
+	return 0;
 }
 
 ?>

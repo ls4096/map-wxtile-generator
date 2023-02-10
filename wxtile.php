@@ -1,5 +1,5 @@
 <?php
-# Copyright (C) 2021 ls4096 <ls4096@8bitbyte.ca>
+# Copyright (C) 2021-2023 ls4096 <ls4096@8bitbyte.ca>
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -153,6 +153,8 @@ function getWindTileImage($lat, $wx, $isGust)
 				);
 				$draw->polygon($poly_points);
 
+				$draw->setFillColor($fg);
+
 				$poly_points = array(
 					array("x" => $wb_x0 - ($WIND_CALM_RADIUS_PX / 2), "y" => $wb_y0 - ($WIND_CALM_RADIUS_PX / 2)),
 					array("x" => $wb_x0 + ($WIND_CALM_RADIUS_PX / 2), "y" => $wb_y0 - ($WIND_CALM_RADIUS_PX / 2)),
@@ -164,10 +166,9 @@ function getWindTileImage($lat, $wx, $isGust)
 			else
 			{
 				$draw->circle($wb_x0, $wb_y0, $wb_x0, $wb_y0 + $WIND_CALM_RADIUS_PX);
+				$draw->setFillColor($fg);
 				$draw->circle($wb_x0, $wb_y0, $wb_x0, $wb_y0 + ($WIND_CALM_RADIUS_PX / 2));
 			}
-
-			$draw->setFillColor($fg);
 		}
 		else
 		{
