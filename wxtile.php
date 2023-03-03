@@ -38,7 +38,9 @@ if (isset($_GET["t"]))
 }
 
 if (($T != "wind") &&
+	($T != "wind_c") &&
 	($T != "wind_gust") &&
+	($T != "wind_gust_c") &&
 	($T != "ocean_current") &&
 	($T != "sea_ice") &&
 	($T != "wave_height"))
@@ -77,11 +79,19 @@ if (count($wx) == 4)
 
 	if ($T == "wind")
 	{
-		$imgData = getWindTileImage($ll[0][0], $wx, false);
+		$imgData = getWindTileImage($ll[0][0], $wx, false, false);
+	}
+	else if ($T == "wind_c")
+	{
+		$imgData = getWindTileImage($ll[0][0], $wx, false, true);
 	}
 	else if ($T == "wind_gust")
 	{
-		$imgData = getWindTileImage($ll[0][0], $wx, true);
+		$imgData = getWindTileImage($ll[0][0], $wx, true, false);
+	}
+	else if ($T == "wind_gust_c")
+	{
+		$imgData = getWindTileImage($ll[0][0], $wx, true, true);
 	}
 	else if ($T == "ocean_current")
 	{
@@ -104,7 +114,7 @@ if (count($wx) == 4)
 
 
 
-function getWindTileImage($lat, $wx, $isGust)
+function getWindTileImage($lat, $wx, $isGust, $adjustForCurrent)
 {
 	$WIND_BARB_PX = 40;
 	$WIND_CALM_RADIUS_PX = 6;
@@ -137,9 +147,60 @@ function getWindTileImage($lat, $wx, $isGust)
 		$draw->setFillColor($fg);
 		$draw->setStrokeWidth(1.5);
 
+		// Draw central component.
+		if ($isGust)
+		{
+			$poly_points = array(
+				array("x" => $wb_x0 - ($WIND_CALM_RADIUS_PX / 2), "y" => $wb_y0 - ($WIND_CALM_RADIUS_PX / 2)),
+				array("x" => $wb_x0 + ($WIND_CALM_RADIUS_PX / 2), "y" => $wb_y0 - ($WIND_CALM_RADIUS_PX / 2)),
+				array("x" => $wb_x0 + ($WIND_CALM_RADIUS_PX / 2), "y" => $wb_y0 + ($WIND_CALM_RADIUS_PX / 2)),
+				array("x" => $wb_x0 - ($WIND_CALM_RADIUS_PX / 2), "y" => $wb_y0 + ($WIND_CALM_RADIUS_PX / 2))
+			);
+			$draw->polygon($poly_points);
+
+			if ($adjustForCurrent)
+			{
+				$draw->line(
+					$wb_x0 - ($WIND_CALM_RADIUS_PX / 2),
+					$wb_y0 - ($WIND_CALM_RADIUS_PX / 2),
+					$wb_x0 + ($WIND_CALM_RADIUS_PX / 2),
+					$wb_y0 + ($WIND_CALM_RADIUS_PX / 2)
+				);
+
+				$draw->line(
+					$wb_x0 - ($WIND_CALM_RADIUS_PX / 2),
+					$wb_y0 + ($WIND_CALM_RADIUS_PX / 2),
+					$wb_x0 + ($WIND_CALM_RADIUS_PX / 2),
+					$wb_y0 - ($WIND_CALM_RADIUS_PX / 2)
+				);
+			}
+		}
+		else
+		{
+			$draw->circle($wb_x0, $wb_y0, $wb_x0, $wb_y0 + ($WIND_CALM_RADIUS_PX / 2));
+
+			if ($adjustForCurrent)
+			{
+				$radius = ($WIND_CALM_RADIUS_PX) * 0.707107;
+				$draw->line(
+					$wb_x0 - ($radius / 2),
+					$wb_y0 - ($radius / 2),
+					$wb_x0 + ($radius / 2),
+					$wb_y0 + ($radius / 2)
+				);
+
+				$draw->line(
+					$wb_x0 - ($radius / 2),
+					$wb_y0 + ($radius / 2),
+					$wb_x0 + ($radius / 2),
+					$wb_y0 - ($radius / 2)
+				);
+			}
+		}
+
 		if ($windSpd < 0.5)
 		{
-			// Draw "calm" circle.
+			// Draw "calm" circle/square.
 
 			$draw->setFillColor(new ImagickPixel("rgba(255,255,255,0.0)"));
 
@@ -152,42 +213,17 @@ function getWindTileImage($lat, $wx, $isGust)
 					array("x" => $wb_x0 - $WIND_CALM_RADIUS_PX, "y" => $wb_y0 + $WIND_CALM_RADIUS_PX)
 				);
 				$draw->polygon($poly_points);
-
-				$draw->setFillColor($fg);
-
-				$poly_points = array(
-					array("x" => $wb_x0 - ($WIND_CALM_RADIUS_PX / 2), "y" => $wb_y0 - ($WIND_CALM_RADIUS_PX / 2)),
-					array("x" => $wb_x0 + ($WIND_CALM_RADIUS_PX / 2), "y" => $wb_y0 - ($WIND_CALM_RADIUS_PX / 2)),
-					array("x" => $wb_x0 + ($WIND_CALM_RADIUS_PX / 2), "y" => $wb_y0 + ($WIND_CALM_RADIUS_PX / 2)),
-					array("x" => $wb_x0 - ($WIND_CALM_RADIUS_PX / 2), "y" => $wb_y0 + ($WIND_CALM_RADIUS_PX / 2))
-				);
-				$draw->polygon($poly_points);
 			}
 			else
 			{
 				$draw->circle($wb_x0, $wb_y0, $wb_x0, $wb_y0 + $WIND_CALM_RADIUS_PX);
-				$draw->setFillColor($fg);
-				$draw->circle($wb_x0, $wb_y0, $wb_x0, $wb_y0 + ($WIND_CALM_RADIUS_PX / 2));
 			}
+
+			$draw->setFillColor($fg);
 		}
 		else
 		{
 			// Draw wind barb.
-
-			if ($isGust)
-			{
-				$poly_points = array(
-					array("x" => $wb_x0 - ($WIND_CALM_RADIUS_PX / 2), "y" => $wb_y0 - ($WIND_CALM_RADIUS_PX / 2)),
-					array("x" => $wb_x0 + ($WIND_CALM_RADIUS_PX / 2), "y" => $wb_y0 - ($WIND_CALM_RADIUS_PX / 2)),
-					array("x" => $wb_x0 + ($WIND_CALM_RADIUS_PX / 2), "y" => $wb_y0 + ($WIND_CALM_RADIUS_PX / 2)),
-					array("x" => $wb_x0 - ($WIND_CALM_RADIUS_PX / 2), "y" => $wb_y0 + ($WIND_CALM_RADIUS_PX / 2))
-				);
-				$draw->polygon($poly_points);
-			}
-			else
-			{
-				$draw->circle($wb_x0, $wb_y0, $wb_x0, $wb_y0 + ($WIND_CALM_RADIUS_PX / 2));
-			}
 
 			$draw->line($wb_x0, $wb_y0, $wb_x1, $wb_y1);
 
