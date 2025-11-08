@@ -1,5 +1,5 @@
 <?php
-# Copyright (C) 2021-2023 ls4096 <ls4096@8bitbyte.ca>
+# Copyright (C) 2021-2025 ls4096 <ls4096@8bitbyte.ca>
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -517,10 +517,14 @@ function getWeatherData($ll, $wxType)
 
 	$f = fsockopen($WXTILE_CONF_HOST, $WXTILE_CONF_PORT, $errno, $errstr, 5);
 
+	$req = "";
+
 	foreach ($ll as $lld)
 	{
-		fwrite($f, $wxType.",".$lld[0].",".$lld[1]."\n");
+		$req .= $wxType.",".$lld[0].",".$lld[1]."\n";
 	}
+
+	fwrite($f, $req);
 
 	$wx = array();
 
